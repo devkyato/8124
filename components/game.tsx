@@ -63,6 +63,10 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
   }, []);
 
   const submitScore = useCallback(async (score: number) => {
+    if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "true") {
+      return;
+    }
+
     try {
       await fetch("/api/scores", {
         method: "POST",

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { addScore, getScores } from "@/lib/score-store";
 
+export const dynamic = "force-static";
+
 const scoreSchema = z.object({
   score: z.number().int().min(0).max(10_000_000)
 });
