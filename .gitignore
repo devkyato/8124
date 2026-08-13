@@ -1,0 +1,6 @@
+.DS_Store
+Thumbs.db
+.next/
+node_modules/
+coverage/
+*.log
