@@ -5,3 +5,7 @@ out/
 node_modules/
 coverage/
 *.log
+.codex_app_inventory.json
+.codex_artifact_build/
+output/
+outputs/
