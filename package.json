@@ -6,9 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:supabase": "node scripts/check-supabase.mjs",
+    "check:supabase:e2e": "node scripts/check-supabase-e2e.mjs"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

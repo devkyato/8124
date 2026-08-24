@@ -1,6 +1,6 @@
 # 8124
 
-hey! this is my small full-stack take on the classic 2048 game. i kept the gameplay familiar, made it work nicely on phones and desktops, and gave everything a simple black and white look.
+8124 Ranked is a full-stack competitive take on 2048. It keeps the familiar game, then adds local email/password accounts, persistent profiles, rank progression, badges, weekly leaderboards, and 2048 speedruns.
 
 the game stays simple, but the project uses the kind of setup i would be comfortable growing into a larger product.
 
@@ -8,13 +8,29 @@ the game stays simple, but the project uses the kind of setup i would be comfort
 
 - next.js app router for the full-stack framework
 - react and typescript for the interface and game logic
-- next.js route handlers for the score api
+- Supabase Auth for local email/password accounts
+- Supabase Postgres with RLS for profiles, runs, badges, and weekly rankings
+- a static Next.js export for GitHub Pages
+- Supabase RLS and database constraints for protected player data and run submission
 - zod for backend request validation
 - react icons for the control guide
 - vitest for game-logic tests
-- `localstorage` for resumable games and personal best scores
+- `localstorage` for resumable in-progress games
 
-the score api keeps a small bounded leaderboard in server memory. it is enough to show the backend flow locally without adding account or database setup to a tiny game.
+## Supabase setup
+
+1. Create a Supabase project.
+2. Open the SQL editor and run `supabase/schema.sql` once.
+3. Copy `.env.example` to `.env.local` and add the project URL and publishable key. Keep the secret key server-only and never prefix it with `NEXT_PUBLIC_`.
+4. In Supabase Authentication, enable Email and choose whether email confirmation is required.
+
+The SQL includes row-level security. Players can read the public leaderboard, submit runs only as themselves, and edit only their own username/display name. Rank, XP, totals, speedruns, and badges are computed by database triggers rather than trusted from the browser.
+
+## GitHub Pages
+
+Pushes to `main` run the Pages workflow in `.github/workflows/deploy-pages.yml`. The workflow tests the game, creates a static export, and deploys it to `https://devkyato.github.io/8124/`.
+
+The workflow needs `NEXT_PUBLIC_SUPABASE_URL` as a GitHub Actions variable and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as an Actions secret. The Supabase secret key is never part of the Pages build.
 
 ## run
 

@@ -1,7 +1,6 @@
-import { Game } from "@/components/game";
-import { getScores } from "@/lib/score-store";
+import { AuthGate } from "@/components/auth-gate";
+import { RankedGame } from "@/components/ranked-game";
 
 export default function HomePage() {
-  const globalBest = getScores()[0]?.score ?? 0;
-  return <Game initialGlobalBest={globalBest} />;
+  return <AuthGate><RankedGame /></AuthGate>;
 }

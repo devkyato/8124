@@ -6,6 +6,7 @@ import { GameBoard } from "./game-board";
 import { chooseMove } from "@/lib/solver";
 import { createGame, moveGame, serializeGame, settleTiles, type GameState } from "@/lib/game";
 import { loadBestScore, loadGame, saveBestScore, saveGame } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
 
 const emptyGame: GameState = {
   tiles: [],
@@ -26,7 +27,7 @@ const keyDirections: Record<string, number> = {
   a: 3
 };
 
-export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
+export function Game({ initialGlobalBest, onRunSubmitted }: { initialGlobalBest: number; onRunSubmitted?: () => void }) {
   const [game, setGame] = useState(emptyGame);
   const [bestScore, setBestScore] = useState(initialGlobalBest);
   const [ready, setReady] = useState(false);
@@ -37,6 +38,9 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
   const gameRef = useRef(game);
   const bestScoreRef = useRef(initialGlobalBest);
   const touchStart = useRef({ x: 0, y: 0 });
+  const runStartedAt = useRef<number | null>(null);
+  const moveCount = useRef(0);
+  const runSubmitted = useRef(false);
 
   useEffect(() => {
     const storedGame = loadGame();
@@ -62,21 +66,28 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
     }
   }, []);
 
-  const submitScore = useCallback(async (score: number) => {
-    if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "true") {
-      return;
-    }
-
+  const submitRun = useCallback(async (state: GameState) => {
+    if (runSubmitted.current || runStartedAt.current === null || moveCount.current < 1) return;
+    runSubmitted.current = true;
+    const maxTile = Math.max(2, ...state.tiles.filter((tile) => !tile.isGhost).map((tile) => tile.value));
     try {
-      await fetch("/api/scores", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ score })
+      const supabase = createClient();
+      const { data: auth } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+      if (!supabase || !auth.user) throw new Error("Not authenticated");
+      const { error } = await supabase.from("game_runs").insert({
+        user_id: auth.user.id,
+        score: state.score,
+        max_tile: maxTile,
+        duration_ms: Math.max(1_000, Date.now() - runStartedAt.current),
+        moves: moveCount.current,
+        won: state.won
       });
+      if (error) throw error;
+      onRunSubmitted?.();
     } catch {
-      // a network issue should never interrupt the local game
+      runSubmitted.current = false;
     }
-  }, []);
+  }, [onRunSubmitted]);
 
   const performMove = useCallback((direction: number) => {
     const result = moveGame(settleTiles(gameRef.current), direction);
@@ -86,6 +97,8 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
     }
 
     gameRef.current = result.state;
+    if (runStartedAt.current === null) runStartedAt.current = Date.now();
+    moveCount.current += 1;
     setGame(result.state);
     const nextBest = Math.max(bestScoreRef.current, result.state.score);
     bestScoreRef.current = nextBest;
@@ -93,8 +106,8 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
     saveBestScore(nextBest);
     saveGame(serializeGame(result.state));
 
-    if (result.state.over) {
-      void submitScore(result.state.score);
+    if (result.state.over || (result.state.won && !gameRef.current.keepPlaying)) {
+      void submitRun(result.state);
     }
 
     if (settleTimer.current !== null) {
@@ -111,7 +124,7 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
     }, 240);
 
     return true;
-  }, [submitScore]);
+  }, [submitRun]);
 
   const runSolverStep = useCallback(() => {
     if (!solverRunning.current) {
@@ -146,6 +159,9 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
       settleTimer.current = null;
     }
     const nextGame = createGame();
+    runStartedAt.current = null;
+    moveCount.current = 0;
+    runSubmitted.current = false;
     gameRef.current = nextGame;
     setGame(nextGame);
     saveGame(nextGame);
@@ -211,11 +227,11 @@ export function Game({ initialGlobalBest }: { initialGlobalBest: number }) {
 
   return (
     <main className={`game-container${solverActive ? " solver-active" : ""}`}>
-      <header className="heading">
+      <header className="heading game-heading">
         <div className="brand">
           <div className="brand-line">
             <h1 className="title">8124</h1>
-            <p className="byline">by <span>@devmako</span></p>
+            <p className="byline">ranked <span>season 01</span></p>
           </div>
           <button className="button" onClick={restart} type="button">new game</button>
         </div>

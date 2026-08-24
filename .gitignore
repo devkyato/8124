@@ -5,6 +5,8 @@ out/
 node_modules/
 coverage/
 *.log
+.env.local
+.env.*.local
 .codex_app_inventory.json
 .codex_artifact_build/
 output/
