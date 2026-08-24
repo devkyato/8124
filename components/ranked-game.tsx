@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DashboardData } from "@/lib/player-types";
 import { createClient } from "@/lib/supabase/client";
+import { renewArcadeSession } from "@/lib/supabase/arcade-session";
 import { loadDashboard } from "@/lib/supabase/player-data";
 import { Game } from "./game";
 import { PlayerSidebar } from "./player-sidebar";
@@ -27,7 +28,19 @@ export function RankedGame() {
       setData(await loadDashboard(supabase, auth.user.id));
       setError("");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not load player data");
+      const message = cause instanceof Error ? cause.message : "Could not load player data";
+      if (message.includes("JWT issued at future")) {
+        try {
+          const renewedUser = await renewArcadeSession();
+          setData(await loadDashboard(supabase, renewedUser.id));
+          setError("");
+          return;
+        } catch (renewError) {
+          setError(renewError instanceof Error ? renewError.message : message);
+          return;
+        }
+      }
+      setError(message);
     }
   }, []);
 
