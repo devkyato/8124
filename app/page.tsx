@@ -1,6 +1,6 @@
-import { AuthGate } from "@/components/auth-gate";
+import { ArcadeSession } from "@/components/arcade-session";
 import { RankedGame } from "@/components/ranked-game";
 
 export default function HomePage() {
-  return <AuthGate><RankedGame /></AuthGate>;
+  return <ArcadeSession><RankedGame /></ArcadeSession>;
 }

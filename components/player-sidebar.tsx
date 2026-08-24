@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { FiAward, FiEdit3, FiLogOut, FiTarget, FiZap } from "react-icons/fi";
+import { FiAward, FiEdit3, FiTarget, FiZap } from "react-icons/fi";
 import type { DashboardData } from "@/lib/player-types";
 import { getRankProgress } from "@/lib/ranks";
 import { createClient } from "@/lib/supabase/client";
@@ -44,14 +44,10 @@ export function PlayerSidebar({ data, onRefresh }: { data: DashboardData; onRefr
     onRefresh();
   }
 
-  async function signOut() {
-    await createClient()?.auth.signOut();
-  }
-
   return (
     <aside className="side-panel player-panel" aria-label="Your profile and progress">
       <div className="panel-heading">
-        <div><p className="eyebrow">your progress</p><h2>{profile.display_name}</h2><span>@{profile.username}</span></div>
+        <div><p className="eyebrow">arcade profile</p><h2>{profile.display_name}</h2><span>@{profile.username} · saved in this browser</span></div>
         <button className="icon-button" onClick={() => setEditing(!editing)} aria-label="Edit profile"><FiEdit3 /></button>
       </div>
 
@@ -82,10 +78,8 @@ export function PlayerSidebar({ data, onRefresh }: { data: DashboardData; onRefr
         <div className="section-heading"><h3>badges</h3><span>{badges.length} earned</span></div>
         {badges.length ? (
           <div className="badge-list">{badges.map((badge) => <div className="badge-chip" key={badge.id} title={badge.description}><b>{badge.icon}</b><span>{badge.name}</span></div>)}</div>
-        ) : <p className="empty-copy">Finish a ranked run to earn your first badge.</p>}
+        ) : <p className="empty-copy">Finish an arcade run to earn your first badge.</p>}
       </section>
-
-      <button className="signout-button" onClick={signOut} type="button"><FiLogOut /> sign out</button>
     </aside>
   );
 }

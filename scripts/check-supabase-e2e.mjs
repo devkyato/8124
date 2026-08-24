@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
@@ -20,9 +19,7 @@ if (!url || !publishableKey || !secretKey) throw new Error("Supabase environment
 
 const admin = createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
 const player = createClient(url, publishableKey, { auth: { autoRefreshToken: false, persistSession: false } });
-const suffix = `${Date.now()}${randomBytes(2).toString("hex")}`;
-const email = `codex-e2e-${suffix}@example.com`;
-const password = randomBytes(24).toString("base64url");
+const suffix = Date.now().toString();
 let userId;
 
 function assert(condition, message) {
@@ -31,29 +28,23 @@ function assert(condition, message) {
 }
 
 try {
-  const { data: created, error: createError } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { username: `e2e_${suffix.slice(-8)}`, display_name: "Codex E2E" }
+  const { data: signedIn, error: signInError } = await player.auth.signInAnonymously({
+    options: { data: { username: `arcade_${suffix.slice(-8)}`, display_name: "Arcade E2E" } }
   });
-  if (createError) throw createError;
-  userId = created.user.id;
-  assert(Boolean(userId), "temporary account created");
-
-  const { error: signInError } = await player.auth.signInWithPassword({ email, password });
   if (signInError) throw signInError;
-  assert(Boolean((await player.auth.getUser()).data.user), "email/password authentication works");
+  userId = signedIn.user?.id;
+  assert(Boolean(userId), "anonymous arcade player created");
+  assert(Boolean((await player.auth.getUser()).data.user), "arcade session authentication works");
 
   const username = `e2e_${suffix.slice(-10)}`;
   const { data: updated, error: updateError } = await player
     .from("profiles")
-    .update({ username, display_name: "Ranked E2E Player" })
+    .update({ username, display_name: "Arcade E2E Player" })
     .eq("id", userId)
     .select("username,display_name")
     .single();
   if (updateError) throw updateError;
-  assert(updated.username === username && updated.display_name === "Ranked E2E Player", "profile editing works through RLS");
+  assert(updated.username === username && updated.display_name === "Arcade E2E Player", "profile editing works through RLS");
 
   const { error: protectedError } = await player.from("profiles").update({ xp: 999999 }).eq("id", userId);
   assert(Boolean(protectedError), "players cannot edit protected rank or XP fields");
@@ -77,7 +68,7 @@ try {
     won: true
   });
   if (runError) throw runError;
-  assert(true, "authenticated ranked run submitted");
+  assert(true, "authenticated arcade run submitted");
 
   const { data: profile, error: profileError } = await player
     .from("profiles")
@@ -107,6 +98,6 @@ try {
   if (userId) {
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) throw new Error(`Test account cleanup failed: ${error.message}`);
-    console.log("PASS  temporary account and run data removed");
+    console.log("PASS  temporary arcade player and run data removed");
   }
 }

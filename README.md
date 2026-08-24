@@ -2,7 +2,7 @@
 
 [![Deploy GitHub Pages](https://github.com/devkyato/8124/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/devkyato/8124/actions/workflows/deploy-pages.yml)
 
-8124 Ranked is a competitive take on 2048 with email/password accounts, persistent player profiles, rank progression, badges, weekly leaderboards, and 2048 speedruns.
+8124 Arcade is an instant-play competitive take on 2048 with guest profiles, rank progression, badges, weekly leaderboards, and 2048 speedruns. There is no login screen—opening the app takes you directly into the arcade.
 
 **Live app:** [https://devkyato.github.io/8124/](https://devkyato.github.io/8124/)
 
@@ -13,13 +13,13 @@
 - player profiles, best scores, best tiles, run totals, and speedrun times
 - automatic achievement badges
 - weekly scoring, placement, and leaderboard statistics
-- protected email/password accounts through Supabase Auth
+- automatic guest arcade profiles with no email or password required
 
 ## tech stack
 
 - Next.js App Router with a static GitHub Pages export
 - react and typescript for the interface and game logic
-- Supabase Auth for email/password accounts
+- Supabase anonymous Auth for persistent guest sessions in each browser
 - Supabase Postgres, RLS, triggers, and constraints for profiles, runs, badges, ranks, and weekly standings
 - react icons for the control guide
 - vitest for game-logic tests
@@ -30,10 +30,11 @@
 1. Create a Supabase project.
 2. Open the SQL editor and run `supabase/schema.sql` once.
 3. Copy `.env.example` to `.env.local` and add the project URL and publishable key. Keep the secret key server-only and never prefix it with `NEXT_PUBLIC_`.
-4. In Supabase Authentication, enable Email and choose whether email confirmation is required.
-5. Set both the Auth Site URL and redirect allowlist to the deployed app URL.
+4. In Supabase Authentication, enable anonymous sign-ins.
 
 The SQL includes row-level security. Players can read the public leaderboard, submit runs only as themselves, and edit only their own username/display name. Rank, XP, totals, speedruns, and badges are computed by database triggers rather than trusted from the browser.
+
+Guest progress is attached to the anonymous session stored in that browser. Clearing site data or switching browsers starts a new arcade profile.
 
 ## GitHub Pages
 
@@ -63,7 +64,7 @@ npm run check:supabase
 npm run check:supabase:e2e
 ```
 
-The end-to-end check creates a temporary player, verifies authentication, protected profile fields, ranked-run validation, XP, badges, speedruns, and weekly totals, then removes the test account and its data.
+The end-to-end check creates a temporary anonymous arcade player, verifies authentication, protected profile fields, run validation, XP, badges, speedruns, and weekly totals, then removes the test player and its data.
 
 ## controls
 

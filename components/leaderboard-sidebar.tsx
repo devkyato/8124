@@ -29,7 +29,7 @@ export function LeaderboardSidebar({ data }: { data: DashboardData }) {
       <ol className="leader-list">
         {data.leaderboard.length
           ? data.leaderboard.slice(0, 10).map((entry, index) => <LeaderRow key={entry.id} entry={entry} place={index + 1} current={entry.id === data.profile.id} />)
-          : <p className="empty-copy">No ranked runs this week. Set the pace.</p>}
+          : <p className="empty-copy">No arcade runs this week. Set the pace.</p>}
       </ol>
 
       <section className="speedrun-board">

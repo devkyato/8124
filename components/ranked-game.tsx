@@ -33,7 +33,7 @@ export function RankedGame() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  if (error) return <main className="dashboard-error"><h1>Could not load ranked play</h1><p>{error}</p><button className="button" onClick={refresh}>try again</button></main>;
+  if (error) return <main className="dashboard-error"><h1>Could not load the arcade</h1><p>{error}</p><button className="button" onClick={refresh}>try again</button></main>;
   if (!data) return <main className="dashboard-loading"><div className="loader" /><span>loading your rank</span></main>;
 
   return (

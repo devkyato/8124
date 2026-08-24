@@ -231,7 +231,7 @@ export function Game({ initialGlobalBest, onRunSubmitted }: { initialGlobalBest:
         <div className="brand">
           <div className="brand-line">
             <h1 className="title">8124</h1>
-            <p className="byline">ranked <span>season 01</span></p>
+            <p className="byline">arcade <span>season 01</span></p>
           </div>
           <button className="button" onClick={restart} type="button">new game</button>
         </div>
