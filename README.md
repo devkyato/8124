@@ -9,6 +9,7 @@
 ## features
 
 - playable 2048 with keyboard, swipe, and solver controls
+- validated local saves that recover safely from malformed browser storage
 - ranks from Unranked through Grandmaster, driven by earned XP
 - player profiles, best scores, best tiles, run totals, and speedrun times
 - automatic achievement badges
